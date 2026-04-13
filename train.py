@@ -23,6 +23,7 @@ r2 = r2_score(y_test, y_pred)
 
 print(f"MSE: {mse:.4f}")
 print(f"R2:  {r2:.4f}")
+print(f"Training samples: {len(X_train)} | Test samples: {len(X_test)}")
 
 with open("model.pkl", "wb") as f:
     pickle.dump(model, f)
