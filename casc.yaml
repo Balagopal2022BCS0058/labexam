@@ -1,0 +1,39 @@
+jenkins:
+  systemMessage: "Jenkins – labexam pipeline (configured via JCasC)"
+  numExecutors: 2
+
+# SSH credential using the BTP key mounted at /run/secrets/ssh_key
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - basicSSHUserPrivateKey:
+              scope: GLOBAL
+              id: "github-btp-ssh"
+              description: "BTP GitHub SSH Key"
+              username: "git"
+              privateKeySource:
+                directEntry:
+                  privateKey: "${readFile:/run/secrets/ssh_key}"
+
+# Auto-create the pipeline job pointing at the GitHub repo
+jobs:
+  - script: >
+      pipelineJob('labexam') {
+        description('Wine quality regression – pulls Jenkinsfile from SCM')
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('git@github.com:Balagopal2022BCS0058/labexam.git')
+                  credentials('github-btp-ssh')
+                }
+                branch('*/master')
+              }
+            }
+            scriptPath('Jenkinsfile')
+            lightweight(true)
+          }
+        }
+      }

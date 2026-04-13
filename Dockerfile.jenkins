@@ -1,0 +1,32 @@
+FROM jenkins/jenkins:lts-jdk17
+
+USER root
+
+# Install Python3 + pip and create python/pip symlinks
+RUN apt-get update && apt-get install -y \
+    python3 python3-pip python3-venv \
+    && ln -sf /usr/bin/python3 /usr/bin/python \
+    && ln -sf /usr/bin/pip3 /usr/bin/pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Allow pip to install to system packages (avoids PEP 668 error on Debian 12)
+RUN printf '[global]\nbreak-system-packages = true\n' > /etc/pip.conf
+
+# Pre-populate GitHub host key so SSH clone doesn't hang on host verification
+RUN mkdir -p /etc/ssh && \
+    ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> /etc/ssh/ssh_known_hosts 2>/dev/null || true
+
+USER jenkins
+
+# Skip the setup wizard
+ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
+
+# Tell JCasC where to find the config file
+ENV CASC_JENKINS_CONFIG=/var/jenkins_home/casc.yaml
+
+# Install plugins
+COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
+RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
+
+# Copy JCasC config (credentials + pipeline job definition)
+COPY casc.yaml /var/jenkins_home/casc.yaml

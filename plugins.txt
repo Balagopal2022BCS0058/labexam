@@ -1,0 +1,7 @@
+git
+workflow-aggregator
+pipeline-stage-view
+credentials
+ssh-credentials
+configuration-as-code
+job-dsl
